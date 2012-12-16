@@ -1,7 +1,8 @@
-#require File.expand_path('../../../util/ini_file', __FILE__)
 require 'net/http'
+require 'puppet_x/connection_validator'
 
 Puppet::Type.type(:connection_validator).provide(:http) do
+  include PuppetX::ConnectionValidator
 
   # If there were a way to specify a docstring for a provider, I'd
   # do it here.
@@ -24,6 +25,9 @@ Puppet::Type.type(:connection_validator).provide(:http) do
   # an HTTP response code of '200 OK'.
   #-----------------------------------------------------------------------------
 
+
+  private
+
   def validate
     if resource["url"]
       if (resource["scheme"] or resource["host"] or resource["port"] or resource["path"])
@@ -33,50 +37,8 @@ Puppet::Type.type(:connection_validator).provide(:http) do
     end
   end
 
-  def exists?
-    # this is horrible--Puppet ought to be calling into the provider
-    # for validation as a normal part of the type/provider life cycle,
-    # but I couldn't find a place where that happens so'
-    # I'm calling my own validation hook here.
-    validate
-
-    start_time = Time.now
-    timeout = resource[:timeout] || 0
-    retry_interval = resource[:retry_interval] || 2
-
-    uri = get_uri
-    success = attempt_connection(uri)
-
-    unless success
-      while (((Time.now - start_time) < timeout) && !success)
-        # It can take several seconds for the puppetdb server to start up;
-        # especially on the first install.  Therefore, our first connection attempt
-        # may fail.  Here we have somewhat arbitrarily chosen to retry every 10
-        # seconds until the configurable timeout has expired.
-        Puppet.notice("Failed to connect to '#{uri}'; sleeping #{resource["retry_interval"]} seconds before retry")
-        sleep retry_interval
-        success = attempt_connection(uri)
-      end
-    end
-
-    unless success
-      Puppet.notice("Failed to connect to '#{uri}' within timeout window of #{timeout} seconds; giving up.")
-    end
-
-    success
-  end
-
-  def create
-    uri = get_uri
-
-    # If `#create` is called, that means that `#exists?` returned false, which
-    # means that the connection could not be established... so we need to
-    # cause a failure here.
-    raise Puppet::Error, "Unable to establish http conn to server! (#{uri})"
-  end
-
-  private
-  def get_uri
+  def uri
+    return @uri if @uri
     if resource["url"]
       return URI(resource["url"])
     end
@@ -86,7 +48,7 @@ Puppet::Type.type(:connection_validator).provide(:http) do
     port = resource["port"] || 80
     path = (resource["path"] || "").gsub(/^\//, "")
 
-    URI("#{scheme}://#{host}:#{port}/#{path}")
+    @uri = URI("#{scheme}://#{host}:#{port}/#{path}")
   end
 
   # Utility method; attempts to make an http connection.
@@ -94,7 +56,7 @@ Puppet::Type.type(:connection_validator).provide(:http) do
   # for retry attempts.
   #
   # @return true if the connection is successful, false otherwise.
-  def attempt_connection(uri)
+  def attempt_connection
     begin
       response = Net::HTTP.get_response(uri)
       unless response.code == "200"
@@ -103,9 +65,16 @@ Puppet::Type.type(:connection_validator).provide(:http) do
       end
       return true
     rescue Errno::ECONNREFUSED => e
-      Puppet.notice "Unable to establish http connection to '#{uri}'; #{e}"
+      Puppet.notice "Unable to establish HTTP connection to '#{uri}'; #{e}"
       return false
     end
+  end
 
+  def connection_type
+    "HTTP"
+  end
+
+  def connection_description
+    uri
   end
 end

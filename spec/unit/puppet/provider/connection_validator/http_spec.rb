@@ -68,7 +68,7 @@ describe provider_class do
   it "should fail when there is no server listening on the port" do
     provider = described_class.new(resource)
     provider.exists?.should be_false
-    expect { provider.create }.to raise_error(Puppet::Error, /Unable to establish http conn/)
+    expect { provider.create }.to raise_error(Puppet::Error, /Unable to establish HTTP conn/)
   end
 
   it "should succeed when host/port/path are specified and the server is up" do
