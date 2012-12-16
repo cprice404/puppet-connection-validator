@@ -1,0 +1,8 @@
+name 'cprice404-connection-validator'
+version '0.0.1'
+source 'git://github.com/cprice-puppet/puppet-connection-validator.git'
+author 'Chris Price'
+description 'Resource type for validating network connections'
+summary 'Resource type for validating network connections'
+license 'Apache'
+project_page 'https://github.com/cprice-puppet/puppet-connection-validator/issues'

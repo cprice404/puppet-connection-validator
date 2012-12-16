@@ -1,5 +1,5 @@
 require 'net/http'
-require 'puppet_x/connection_validator'
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'puppet_x', '/connection_validator')
 
 Puppet::Type.type(:connection_validator).provide(:http) do
   include PuppetX::ConnectionValidator

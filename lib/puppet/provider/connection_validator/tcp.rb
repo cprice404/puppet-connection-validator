@@ -1,4 +1,4 @@
-require 'puppet_x/connection_validator'
+require File.join(File.dirname(__FILE__), '..', '..', '..', 'puppet_x', '/connection_validator')
 require 'socket'
 
 Puppet::Type.type(:connection_validator).provide(:tcp) do
