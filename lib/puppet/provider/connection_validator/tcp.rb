@@ -14,6 +14,10 @@ Puppet::Type.type(:connection_validator).provide(:tcp) do
   # 'host' and 'port' parameters.
   #-----------------------------------------------------------------------------
 
+  def self.default?
+    true
+  end
+
   private
 
   def validate
