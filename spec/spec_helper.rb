@@ -1,10 +1,10 @@
 dir = File.expand_path(File.dirname(__FILE__))
 $LOAD_PATH.unshift File.join(dir, 'lib')
 
-gem 'rspec', '>=2.0.0'
 require 'rspec/expectations'
-
 require 'puppetlabs_spec_helper/puppet_spec_helper'
+
+Dir["./spec/support/**/*.rb"].sort.each { |f| require f}
 
 RSpec.configure do |config|
   config.mock_with :rspec
@@ -23,7 +23,7 @@ RSpec.configure do |config|
     Puppet::Util::Log.newdestination(Puppet::Test::LogCollector.new(@logs))
 
     def logs
-      @logs
+      @logs.map(&:message)
     end
   end
 end
