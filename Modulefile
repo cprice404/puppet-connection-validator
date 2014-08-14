@@ -1,4 +1,4 @@
-name 'cprice404-connection-validator'
+name 'cprice404/connection_validator'
 version '0.0.1'
 source 'git://github.com/cprice-puppet/puppet-connection-validator.git'
 author 'Chris Price'
